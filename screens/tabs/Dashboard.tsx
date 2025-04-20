@@ -1,8 +1,9 @@
 // screens/DashboardScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { auth, db } from '../../FirebaseConfig'; 
 import { doc, getDoc } from 'firebase/firestore';
+import { Calendar, DateData } from 'react-native-calendars';
 
 type UserData = {
   fullname: string;
@@ -10,6 +11,129 @@ type UserData = {
   role: string;
   section: string;
   createdAt: Date;
+};
+
+const AttendanceCalendar: React.FC = () => {
+  const [markedDates, setMarkedDates] = useState({});
+  const [streakCount, setStreakCount] = useState(0);
+  const [attendanceWithTime, setAttendanceWithTime] = useState<Record<string, string>>({});
+
+  const convertToGMT8DateString = (date: Date): string => {
+    return date.toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Manila', // This sets it to GMT+8
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+  
+  const toGMT8 = (date: Date): Date => {
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    return new Date(utc + 8 * 60 * 60000);
+  };
+
+  const fetchAttendance = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    const ref = doc(db, 'attendance', uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      const rawDates: any[] = data.dates || [];
+      const timeMap: Record<string, string> = {};
+
+      let formattedDates: any[string] = [];
+
+      rawDates.forEach((d: any) => {
+        const dateObj = d.toDate ? d.toDate() : new Date(d);
+
+        const dateStr = dateObj.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        formattedDates.push(dateStr);
+        timeMap[dateStr] = timeStr;
+      });
+
+      const streak = calculateStreak(formattedDates); 
+      setStreakCount(streak);
+      setAttendanceWithTime(timeMap);
+
+      // Mark dates on calendar
+      const marked = formattedDates.reduce((acc: any, date: string) => {
+        acc[date] = { marked: true, dotColor: '#4CAF50' };
+        return acc;
+      }, {});
+
+      setMarkedDates(marked);
+    }
+  };
+
+  const calculateStreak = (dates: string[]): number => {
+    if (dates.length === 0) return 0;
+
+    const today = toGMT8(new Date());
+    today.setHours(0, 0, 0, 0);
+
+    let streak = 0;
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const currentDate = new Date(dates[i]);
+      currentDate.setHours(0, 0, 0, 0);
+
+      const expectedDate = new Date();
+      expectedDate.setDate(today.getDate() - streak);
+      expectedDate.setHours(0, 0, 0, 0);
+
+      if (currentDate.getTime() === expectedDate.getTime()) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
+  useEffect(() => {
+    fetchAttendance();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.streakText}>🔥 Current Streak: {streakCount} day(s)</Text>
+      <Calendar
+        markedDates={markedDates}
+        theme={{
+          selectedDayBackgroundColor: '#4CAF50',
+          todayTextColor: '#FF5722',
+        }}
+        onDayPress={(day: DateData) => {
+          const clickedDate = new Date(day.dateString);
+          const today = new Date();
+        
+          // Normalize both dates to ignore time differences
+          clickedDate.setHours(0, 0, 0, 0);
+          today.setHours(0, 0, 0, 0);
+        
+          if (clickedDate > today) {
+            // If the clicked date is in the future, show an alert
+            Alert.alert("Oh no!", "You cannot choose the future...");
+          } else {
+            // Otherwise, proceed to check attendance
+            const date = day.dateString;
+            const time = attendanceWithTime[date];
+        
+            if (time) {
+              Alert.alert("Attendance Info", `You were present at ${time}`);
+            } else {
+              Alert.alert("Attendance Info", "You were absent on this day.");
+            }
+          }
+        }}
+      />
+    </View>
+  );
 };
 
 const DashboardScreen: React.FC = () => {
@@ -43,13 +167,11 @@ const DashboardScreen: React.FC = () => {
           <Text style={styles.title}>📊 Dashboard</Text>
           <Text style={styles.subtitle}>Welcome back, {user?.fullname}!</Text>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Today's Attendance</Text>
-            <Text>Status: Present ✅</Text>
-          </View>
-          <View style={styles.card}>
             <Text style={styles.cardTitle}>My Section</Text>
-            <Text>BSCS 3A</Text>
+            <Text>{user?.section}</Text>
           </View>
+
+          <AttendanceCalendar />
         </>
       ) : (
         <ActivityIndicator size="large" color="#1E90FF" />
@@ -91,5 +213,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
+    marginTop: 4,
+  },
+  streakText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
   },
 });

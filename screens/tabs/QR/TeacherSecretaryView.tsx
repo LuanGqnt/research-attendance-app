@@ -70,7 +70,7 @@ const TeacherSecretaryView: React.FC = () => {
       const attendanceRef = doc(db, "attendance", uid);
       const today = toGMT8(new Date()); // Converts to GMT +8
 
-      try {
+      try { 
         const docSnap = await getDoc(attendanceRef);
     
         if (docSnap.exists()) {

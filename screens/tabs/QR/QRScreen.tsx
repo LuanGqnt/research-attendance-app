@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
 import { auth, db } from '../../../FirebaseConfig';
 import { doc, getDoc} from 'firebase/firestore';
 import StudentView from './StudentView';

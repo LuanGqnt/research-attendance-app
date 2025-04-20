@@ -17,9 +17,14 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
   const [alreadyAttended, setAlreadyAttended] = useState<boolean>(false);
   const [attendanceTime, setAttendanceTime] = useState<string | null>(null);
 
+  const toGMT8 = (date: Date): Date => {
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    return new Date(utc + 8 * 60 * 60000);
+  };
+
   const checkIfAttendedAlready = async (uid: string): Promise<boolean> => {
     const attendanceRef = doc(db, "attendance", uid);
-    const today = new Date();
+    const today = toGMT8(new Date());
     today.setHours(0, 0, 0, 0); // Normalize
   
     try {
@@ -62,10 +67,10 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
         const currentSessionId = userData.currentSessionId;
   
         // If currentSessionId === lastSessionId, it means the QR has already been used
-        if (currentSessionId && currentSessionId === lastSessionId) {
-          console.log("QR Code already used. Not generating new one.");
-          return;
-        }
+        // if (currentSessionId && currentSessionId === lastSessionId) {
+        //   console.log("QR Code already used. Not generating new one.");
+        //   // return;
+        // }
   
         // If QR is still valid and not yet used, reuse it
         if (currentSessionId && currentSessionId !== lastSessionId) {
