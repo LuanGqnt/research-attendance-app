@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, Button } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, Button, Dimensions } from 'react-native';
 import { auth, db } from '../../../FirebaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import QRCode from 'react-native-qrcode-svg';
+import * as ScreenCapture from 'expo-screen-capture';
 
 type UserData = {
   firstName: string;
@@ -18,6 +19,26 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
   const [qrCode, setQrCode] = useState<string>('');
   const [alreadyAttended, setAlreadyAttended] = useState<boolean>(false);
   const [attendanceTime, setAttendanceTime] = useState<string | null>(null);
+  const [screenshotDetected, setScreenshotDetected] = useState(false);
+  
+  useEffect(() => {
+    const subscribe = ScreenCapture.addScreenshotListener(() => {
+      const uid = auth.currentUser?.uid;
+
+      setScreenshotDetected(true);
+      Alert.alert("Security Alert", "Screenshot detected. Regenerating QR code.");
+      console.log('Screenshot detected. Regenerating QR code.');
+      
+      if (uid)        
+        generateQRCode(uid, true);
+
+      setTimeout(() => setScreenshotDetected(false), 3000); // Reset dim after 3 seconds
+    });
+
+    return () => {
+      subscribe.remove();
+    };
+  }, []);
 
   const toGMT8 = (date: Date): Date => {
     const utc = date.getTime() + date.getTimezoneOffset() * 60000;
@@ -58,7 +79,7 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
     }
   };
 
-  const generateQRCode = async (uid: string) => {
+  const generateQRCode = async (uid: string, bypass: boolean) => {
     try {
       const userRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userRef);
@@ -67,15 +88,9 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
         const userData = userSnap.data();
         const lastSessionId = userData.lastSessionId;
         const currentSessionId = userData.currentSessionId;
-  
-        // If currentSessionId === lastSessionId, it means the QR has already been used
-        // if (currentSessionId && currentSessionId === lastSessionId) {
-        //   console.log("QR Code already used. Not generating new one.");
-        //   // return;
-        // }
-  
+        
         // If QR is still valid and not yet used, reuse it
-        if (currentSessionId && currentSessionId !== lastSessionId) {
+        if (currentSessionId && currentSessionId !== lastSessionId && !bypass) {
           console.log("Reusing current unused QR Code " + currentSessionId);
           setQrCode(currentSessionId);
           return;
@@ -104,7 +119,7 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
         setAlreadyAttended(hasAttended);
 
         if(!hasAttended)
-          generateQRCode(uid);
+          generateQRCode(uid, false);
       }
     };
 
@@ -113,6 +128,7 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
   
   return (
     <View style={styles.container}>
+      {screenshotDetected && <View style={styles.overlay} />}
 
       {alreadyAttended ? (
         <View style={styles.resultContainer}>
@@ -181,5 +197,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
     textAlign: 'center',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: Dimensions.get('window').height,
+    width: Dimensions.get('window').width,
+    backgroundColor: 'black',
+    opacity: 0.8,
+    zIndex: 99,
   },
 });
