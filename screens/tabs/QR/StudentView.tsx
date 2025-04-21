@@ -5,7 +5,9 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import QRCode from 'react-native-qrcode-svg';
 
 type UserData = {
-  fullname: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   email: string;
   role: string;
   section: string;

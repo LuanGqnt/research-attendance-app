@@ -9,7 +9,9 @@ import { doc, setDoc } from 'firebase/firestore';
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 const Register: React.FC<Props> = ({ navigation }) => {
-  const [fullname, setFullname] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [section, setSection] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); 
@@ -21,7 +23,9 @@ const Register: React.FC<Props> = ({ navigation }) => {
       if (!user) return;
       
       await setDoc(doc(db, 'users', user.user.uid), {
-        fullname,
+        firstName,
+        middleName,
+        lastName,
         email,
         role: 'Student',
         section,
@@ -42,11 +46,31 @@ const Register: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Register</Text>
+
+      {/* Personal Info Section */}
+      <Text style={styles.sectionHeader}>Personal Information</Text>
+      <View style={styles.nameRow}>
+        <TextInput
+          style={[styles.input, styles.halfInput, { marginRight: 8 }]}
+          placeholder="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={[styles.input, styles.halfInput]}
+          placeholder="Middle Name"
+          value={middleName}
+          onChangeText={setMiddleName}
+          autoCapitalize="none"
+        />
+      </View>
+
       <TextInput
         style={styles.input}
-        placeholder="Full Name"
-        value={fullname}
-        onChangeText={setFullname}
+        placeholder="Last Name"
+        value={lastName}
+        onChangeText={setLastName}
         autoCapitalize="none"
       />
       <TextInput
@@ -56,6 +80,9 @@ const Register: React.FC<Props> = ({ navigation }) => {
         onChangeText={setSection}
         autoCapitalize="none"
       />
+
+      {/* System Info Section */}
+      <Text style={styles.sectionHeader}>Account Details</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -70,6 +97,7 @@ const Register: React.FC<Props> = ({ navigation }) => {
         onChangeText={setPassword}
         secureTextEntry
       />
+
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
@@ -84,6 +112,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: 'center',
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  halfInput: {
+    flex: 1,
   },
   title: {
     fontSize: 32,
@@ -111,5 +146,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

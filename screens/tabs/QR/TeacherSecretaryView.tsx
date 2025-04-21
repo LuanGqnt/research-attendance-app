@@ -5,7 +5,9 @@ import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 
 type UserData = {
-  fullname: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   email: string;
   role: string;
   section: string;

@@ -6,7 +6,9 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Calendar, DateData } from 'react-native-calendars';
 
 type UserData = {
-  fullname: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   email: string;
   role: string;
   section: string;
@@ -17,15 +19,6 @@ const AttendanceCalendar: React.FC = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [streakCount, setStreakCount] = useState(0);
   const [attendanceWithTime, setAttendanceWithTime] = useState<Record<string, string>>({});
-
-  const convertToGMT8DateString = (date: Date): string => {
-    return date.toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Manila', // This sets it to GMT+8
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
   
   const toGMT8 = (date: Date): Date => {
     const utc = date.getTime() + date.getTimezoneOffset() * 60000;
@@ -165,7 +158,7 @@ const DashboardScreen: React.FC = () => {
       { user ? (
         <>
           <Text style={styles.title}>📊 Dashboard</Text>
-          <Text style={styles.subtitle}>Welcome back, {user?.fullname}!</Text>
+          <Text style={styles.subtitle}>Welcome back, {user?.firstName}!</Text>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>My Section</Text>
             <Text>{user?.section}</Text>

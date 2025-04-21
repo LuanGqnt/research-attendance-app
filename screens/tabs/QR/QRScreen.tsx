@@ -5,7 +5,9 @@ import StudentView from './StudentView';
 import TeacherSecretaryView from './TeacherSecretaryView';
 
 type UserData = {
-  fullname: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   email: string;
   role: string;
   section: string;
