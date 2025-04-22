@@ -8,12 +8,28 @@ import Home from './screens/Home';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import MainTabs from './screens/tabs/MainTabs';
+import ManageUsers from './screens/tabs/Admin/ManageUsers';
+import EditUser from './screens/tabs/Admin/EditUser';
+
+type UserData = {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  section: string;
+  createdAt: Date;
+  id: string;
+};
+
 
 export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Register: undefined;
   MainTabs: undefined;
+  ManageUsers: undefined;
+  EditUser: { user: UserData }; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,6 +59,8 @@ export default function App() {
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="ManageUsers" component={ManageUsers} options={{ headerTitle: '' }} />
+        <Stack.Screen name="EditUser" component={EditUser} options={{ headerTitle: '' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

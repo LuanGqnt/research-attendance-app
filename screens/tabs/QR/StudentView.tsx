@@ -32,7 +32,7 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
       if (uid)        
         generateQRCode(uid, true);
 
-      setTimeout(() => setScreenshotDetected(false), 3000); // Reset dim after 3 seconds
+      setTimeout(() => setScreenshotDetected(false), 3000);
     });
 
     return () => {
@@ -65,7 +65,7 @@ const StudentView: React.FC<{ user: UserData | null }> = ({ user }) => {
         if (match) {
           const attendedDate = match.toDate ? match.toDate() : new Date(match);
           const timeStr = attendedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          setAttendanceTime(timeStr); // <- update state here
+          setAttendanceTime(timeStr);
           return true;
         }
       }
