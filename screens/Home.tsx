@@ -9,7 +9,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 const Home: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sacred Heart College: Attendance Application</Text>  
+      <Text style={styles.title}>Mobile Attendance and Tracking System (MATS)</Text>  
       <View style={styles.buttonContainer}>
         <Button title="Log In" color="#d1d1d1" onPress={() => navigation.navigate('Login')} />
       </View>
